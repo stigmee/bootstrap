@@ -1,0 +1,39 @@
+From 01c2ac268f7205c461dd3b180f91e3b288b4a339 Mon Sep 17 00:00:00 2001
+From: Quentin Quadrat <lecrapouille@gmail.com>
+Date: Sat, 6 Nov 2021 01:51:38 +0100
+Subject: [PATCH] Force git cloning brave-core with depth=1 to save disk space
+
+---
+ build/commands/lib/util.js     | 2 +-
+ build/commands/scripts/sync.js | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/build/commands/lib/util.js b/build/commands/lib/util.js
+index c65ae2d..8c74845 100755
+--- a/build/commands/lib/util.js
++++ b/build/commands/lib/util.js
+@@ -636,7 +636,7 @@ const util = {
+     let reset = forceReset
+
+     // base args
+-    const initialArgs = ['sync', '--reset', '--nohooks']
++    const initialArgs = ['sync', '--reset', '--nohooks', '--no-history']
+     const chromiumArgs = ['--revision', 'src@' + config.getProjectRef('chrome')]
+     const resetArgs = ['--with_tags', '--with_branch_heads', '--upstream']
+
+diff --git a/build/commands/scripts/sync.js b/build/commands/scripts/sync.js
+index 3b84aa1..63e6698 100644
+--- a/build/commands/scripts/sync.js
++++ b/build/commands/scripts/sync.js
+@@ -31,7 +31,7 @@ const installDepotTools = (options = config.defaultOptions) => {
+   if (!fs.existsSync(config.depotToolsDir)) {
+     Log.progress('Install Depot Tools...')
+     fs.mkdirSync(config.depotToolsDir)
+-    util.run('git', ['-C', config.depotToolsDir, 'clone', 'https://chromium.googlesource.com/chromium/tools/depot_tools.git', '.'], options)
++    util.run('git', ['-C', config.depotToolsDir, 'clone', '--depth=1', 'https://chromium.googlesource.com/chromium/tools/depot_tools.git', '.'], options)
+   }
+
+   Log.progress('Fixup Depot Tools...')
+--
+2.30.2
+

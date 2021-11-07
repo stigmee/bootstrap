@@ -1,0 +1,25 @@
+From bcf932325836c9d04844081156cddc037921b117 Mon Sep 17 00:00:00 2001
+From: Quentin Quadrat <lecrapouille@gmail.com>
+Date: Wed, 3 Nov 2021 21:32:51 +0100
+Subject: [PATCH] Force git cloning brave-browser with depth=1 to save disk space
+
+---
+ scripts/init.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/init.js b/scripts/init.js
+index 3284810..577bbba 100644
+--- a/scripts/init.js
++++ b/scripts/init.js
+@@ -17,7 +17,7 @@ const braveCoreRef = util.getProjectVersion('brave-core')
+ if (!fs.existsSync(path.join(braveCoreDir, '.git'))) {
+   Log.status(`Cloning brave-core [${braveCoreRef}] into ${braveCoreDir}...`)
+   fs.mkdirSync(braveCoreDir)
+-  util.runGit(braveCoreDir, ['clone', util.getNPMConfig(['projects', 'brave-core', 'repository', 'url']), '.'])
++  util.runGit(braveCoreDir, ['clone', '--depth=1', util.getNPMConfig(['projects', 'brave-core', 'repository', 'url']), '.'])
+   util.runGit(braveCoreDir, ['checkout', braveCoreRef])
+ }
+
+--
+2.30.2
+

@@ -1,11 +1,11 @@
-# Chreage setup and code source compilation
+# Stigmee setup and code source compilation
 
-Chreage's development is depending on the following projects as third parts:
+Stigmee's development is depending on the following projects as third parts:
 - Brave-core: https://github.com/brave/brave-browser
 - Godot: https://github.com/godotengine/godot
 
 This document will explain how to setup, download third-parts and compile
-Chreage project on Linux using the script `bootstrap.sh`. Depending on the
+Stigmee project on Linux using the script `bootstrap.sh`. Depending on the
 environment of your operating system, you may have more or less difficulties to
 compile third parts if you are trying to compile them
 [directly](https://github.com/chreage-rebirth/doc)) that is why we are also
@@ -23,7 +23,7 @@ for example):
 equivalent file). Do not forget to replace `path/for/chreage_workspace` by the
 desired folder holding the whole project (let say around 100 gigabytes):
 ```bash
-export WORKSPACE_CHREAGE=path/for/chreage_workspace
+export WORKSPACE_STIGMEE=path/for/chreage_workspace
 ```
 
 - git clone this repo:
@@ -38,13 +38,13 @@ cd bootstrap
 
 - Execute the bash script:
 ```bash
-./bootstrap.sh $WORKSPACE_CHREAGE
+./bootstrap.sh $WORKSPACE_STIGMEE
 ```
 
 - After long hours of compilation.
   - If Docker was not used:
-    - you can run Godot: `$WORKSPACE_CHREAGE/godot/bin/godot.linuxbsd.tools.64`
-    - you can run Brave: `cd $WORKSPACE_CHREAGE; npm start Component`
+    - you can run Godot: `$WORKSPACE_STIGMEE/godot/bin/godot.linuxbsd.tools.64`
+    - you can run Brave: `cd $WORKSPACE_STIGMEE; npm start Component`
   - If Docker was used:
 ```bash
 TODO
@@ -52,11 +52,11 @@ TODO
 #
 #docker run --rm -ti  --shm-size 1GB  -e DISPLAY=:1 -v /tmp/.X11-unix:/tmp/.X11-unix -v $(pwd):/workspace -w /#workspace/brave-browser chreage:latest /bin/bash -c "/workspace/brave-browser/src/out/Component/brave --enable-#logging --v=0 --disable-brave-update --no-sandbox"
 #
-# $WORKSPACE_CHREAGE/godot/bin/godot.linuxbsd.tools.64
+# $WORKSPACE_STIGMEE/godot/bin/godot.linuxbsd.tools.64
 ```
 
-- With Docker, if you want to modify the Chreage's code source and recompile it:
+- With Docker, if you want to modify the Stigmee's code source and recompile it:
 ```bash
-cd $WORKSPACE_CHREAGE
+cd $WORKSPACE_STIGMEE
 docker run --rm -ti -v $(pwd):/workspace -w /workspace chreage:latest /bin/bash
 ```

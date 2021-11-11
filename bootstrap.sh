@@ -81,7 +81,7 @@ function docker_run()
 }
 
 ### Create the docker image if it does not exist. The docker image will offer
-### all packages needed to compile Chreage and its third parts such as Brave,
+### all packages needed to compile Stigmee and its third parts such as Brave,
 ### Godot ...
 if [ ! -z "$USING_DOCKER" ]; then
     docker build \
@@ -89,21 +89,21 @@ if [ ! -z "$USING_DOCKER" ]; then
            -t chreage .
 fi
 
-### $1 is the path of the desired Chreage root folder to be created. It will
+### $1 is the path of the desired Stigmee root folder to be created. It will
 ### hold the whole code source of third-part projects.
-WORKSPACE_CHREAGE="$1"
-if [ -z "$WORKSPACE_CHREAGE" ]; then
+WORKSPACE_STIGMEE="$1"
+if [ -z "$WORKSPACE_STIGMEE" ]; then
     err "Please define \$1 as the path for your workspace holding "
-    err "Chreage project (ie $0 ~/workspace_chreage). Abort!"
+    err "Stigmee project (ie $0 ~/workspace_chreage). Abort!"
     exit 1
 fi
 
-### Create and jump to Chreage root folder (or die if it does not exist).
-msg "Going to workspace $WORKSPACE_CHREAGE ..."
-mkdir -p $WORKSPACE_CHREAGE
+### Create and jump to Stigmee root folder (or die if it does not exist).
+msg "Going to workspace $WORKSPACE_STIGMEE ..."
+mkdir -p $WORKSPACE_STIGMEE
 
 ### Git clone or update Godot to the desired version.
-cd "$WORKSPACE_CHREAGE" || (err "Cannot go to Chreage workspace"; exit 1)
+cd "$WORKSPACE_STIGMEE" || (err "Cannot go to Stigmee workspace"; exit 1)
 if [ ! -z "$GODOT_VERSION" ]; then
     GODOT_FOLDER="godot"
     if [ -e $GODOT_FOLDER ]; then
@@ -114,7 +114,7 @@ if [ ! -z "$GODOT_VERSION" ]; then
         git clone https://github.com/godotengine/godot.git --depth=1 -b $GODOT_VERSION
     fi
 
-    # Call the docker against Chreage workspace to compile Godot ...
+    # Call the docker against Stigmee workspace to compile Godot ...
     msg "Compiling Godot $GODOT_VERSION ..."
     docker_run "$GODOT_FOLDER" "scons -j$(nproc) platform=linuxbsd"
 else
@@ -122,7 +122,7 @@ else
 fi
 
 ### Git clone or update brave-core's bootstraper to the desired version.
-cd "$WORKSPACE_CHREAGE" || (err "Cannot go to Chreage workspace"; exit 1)
+cd "$WORKSPACE_STIGMEE" || (err "Cannot go to Stigmee workspace"; exit 1)
 if [ ! -z "$BRAVE_VERSION" ]; then
     BRAVE_FOLDER="brave-browser"
     if [ -e $BRAVE_FOLDER ]; then
@@ -147,8 +147,8 @@ if [ ! -z "$BRAVE_VERSION" ]; then
         )
     fi
 
-    # Call the docker against Chreage workspace to compile Brave ...
-    if [ -f $WORKSPACE_CHREAGE/$BRAVE_FOLDER/out/brave ]; then
+    # Call the docker against Stigmee workspace to compile Brave ...
+    if [ -f $WORKSPACE_STIGMEE/$BRAVE_FOLDER/out/brave ]; then
         msg "Synchronizing brave-browser $BRAVE_VERSION ..."
         docker_run "$BRAVE_FOLDER" "npm run sync"
     else

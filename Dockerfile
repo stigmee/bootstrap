@@ -39,5 +39,5 @@ ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 RUN node --version
 RUN npm --version
 
-# Chreage's project root folder
+# Stigmee's project root folder
 WORKDIR /workspace

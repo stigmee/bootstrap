@@ -114,7 +114,7 @@ if [ ! -z "$CEF_VERSION" ]; then
     (cd $CEF_FOLDER
      # This script works well but git clone with full history. For the moment use our hand-patched script
      # curl https://bitbucket.org/chromiumembedded/cef/raw/master/tools/automate/automate-git.py --output bootstrap.py
-     cp $HERE/patches/CEF.py bootstrap.py
+     cp $HERE/patches/CEF/bootstrap.py .
 
      msg "Cloning chromium embedded framework $CEF_VERSION ..."
      python bootstrap.py --download-dir="." --branch="$CEF_VERSION"

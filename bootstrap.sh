@@ -1,40 +1,15 @@
 #!/bin/bash -e
 ###
-### bash script allowing to download and compile Brave browser and Godot.
+### bash script allowing to download and compile Brave browser, FCE, Godot ...
+### needed for https://github.com/stigmee
+###
+### Command line: $1 the (existing or not existing) Stigmee's workspace path
+### in which all Stigmee and third parts will be stored.
 ###
 
-### User settings. Desired versions. If you do not desire to install a
-### package unset the value
-GODOT_VERSION=3.4-stable
-BRAVE_VERSION=v1.32.96
+source settings.sh
 
-### User settings. Using Docker ? If yes set it with any value (WARNING:
-### CURRENTLY EXPERIMENTAL !!)
-USING_DOCKER=
-
-### We are supposed to be inside the root folder cloned by
-### https://github.com/chreage-rebirth/bootstrap. We save this path.
-HERE=`pwd`
-
-# Green color message
-function msg
-{
-    echo -e "\033[32m*** $*\033[00m"
-}
-
-# Orange color message
-function info
-{
-    echo -e "\033[36m*** $*\033[00m"
-}
-
-# Red color message
-function err
-{
-    echo -e "\033[31m*** $*\033[00m"
-}
-
-### Check if docker is installed
+### If docker is desired then check if docker is installed
 if [ -z "$USING_DOCKER" ]; then
     info "You have not requested using docker"
 else
@@ -46,24 +21,28 @@ else
     fi
 fi
 
-### Helper function calling docker with good params
+### Helper function calling a command with or without docker
+# $1: the folder name (not its full path). Shall exist!
+# $*: the command to execute
 function docker_run()
 {
     # Get the folder name (without the full path)
     FOLDER="$1"
     shift
 
+    # Docker not desired: call the command directly
     if [ -z "$USING_DOCKER" ]; then
         (cd $FOLDER && $*)
     else
+        # Call the command inside docker
         docker run --rm -ti -v $(pwd):/workspace -w /workspace/$WHERE \
                chreage:latest /bin/bash -c "$*"
     fi
 }
 
-### Create the docker image if it does not exist. The docker image will offer
-### all packages needed to compile Stigmee and its third parts such as Brave,
-### Godot ...
+### Create the docker image for Stigmee if it does not exist. The docker image will offer
+### all packages needed to compile Stigmee's third parts such as Brave, CEF,
+### Godot and finally Stigmee.
 if [ ! -z "$USING_DOCKER" ]; then
     docker build \
            --build-arg USER=$USER --build-arg UID=$UID --build-arg GID=$GID \
@@ -83,7 +62,9 @@ fi
 msg "Going to workspace $WORKSPACE_STIGMEE ..."
 mkdir -p $WORKSPACE_STIGMEE
 
+###############################################################################
 ### Git clone or update Godot to the desired version.
+###############################################################################
 cd "$WORKSPACE_STIGMEE" || (err "Cannot go to Stigmee workspace"; exit 1)
 if [ ! -z "$GODOT_VERSION" ]; then
     GODOT_FOLDER="godot"
@@ -102,7 +83,27 @@ else
     info "Ignoring Godot (explicitely set by the user)"
 fi
 
+###############################################################################
+### Git clone or update Chromium Embedded Framework's bootstraper to the desired
+### version.
+###############################################################################
+CEF_VERSION=$CHROMIUM_EMBEDDED_FRAMEWORK_VERSION
+cd "$WORKSPACE_STIGMEE" || (err "Cannot go to Stigmee workspace"; exit 1)
+if [ ! -z "$CEF_VERSION" ]; then
+    CEF_FOLDER="CEF"
+    mkdir -p $CEF_FOLDER
+    (cd $CEF_FOLDER
+     curl https://bitbucket.org/chromiumembedded/cef/raw/master/tools/automate/automate-git.py --output bootstrap.py
+     msg "Cloning chromium embedded framework $CEF_VERSION ..."
+     python bootstrap.py --download-dir="." --branch="$CEF_VERSION"
+    )
+else
+    info "Ignoring CEF (explicitely set by the user)"
+fi
+
+###############################################################################
 ### Git clone or update brave-core's bootstraper to the desired version.
+###############################################################################
 cd "$WORKSPACE_STIGMEE" || (err "Cannot go to Stigmee workspace"; exit 1)
 if [ ! -z "$BRAVE_VERSION" ]; then
     BRAVE_FOLDER="brave-browser"

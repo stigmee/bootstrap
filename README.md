@@ -38,6 +38,13 @@ git clone https://github.com/stigmee-rebirth/bootstrap.git --depth=1
 cd bootstrap
 ```
 
+- Install the meta package which just group the list of packages needed for your system.
+See [meta/README.md](meta/README.md) for more informations. **Note:** this is still experimental
+and working well for Debian 11.
+```bash
+sudo dpkg -i meta/stigmee-developpers_1.0_all.deb
+```
+
 - Optionally, you can edit some settings inside the script [settings.sh](settings.sh) :
   - The versions for Godot (currently `GODOT_VERSION=3.4-stable`), Brave
     (currently `BRAVE_VERSION=v1.32.96`) or CEF (currently
@@ -50,7 +57,7 @@ cd bootstrap
 ./bootstrap.sh $WORKSPACE_STIGMEE
 ```
 
-- After long hours of compilation.
+- After long hours of compilation (if you see this king of message `[1:16:30] Still working on: src` during hours, this step is normal).
   - If Docker was not used:
     - you can run Godot: `$WORKSPACE_STIGMEE/godot/bin/godot.linuxbsd.tools.64`
     - you can run Brave: `cd $WORKSPACE_STIGMEE; npm start Component`

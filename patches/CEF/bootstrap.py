@@ -1382,7 +1382,7 @@ if chromium_checkout_changed:
   apply_runhooks_patch()
 
   # Runs hooks for files that have been modified in the local working copy.
-  run("gclient runhooks --no-history --jobs 16", chromium_dir, depot_tools_dir)
+  run("gclient runhooks --jobs 16", chromium_dir, depot_tools_dir)
 
   # Delete the src/out directory created by `gclient sync`.
   delete_directory(out_src_dir)

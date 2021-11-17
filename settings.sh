@@ -3,6 +3,11 @@
 ### This file is included (do not run it directly)
 ###############################################################################
 
+### Command line
+### $1 is the path of the desired Stigmee root folder to be created. It will
+### hold the whole code source of third-part projects.
+WORKSPACE_STIGMEE="$1"
+
 ### User settings. Stigmee's third-part desired versions. If you do not desire
 ### to install a third-part unset its version.
 GODOT_VERSION=3.4-stable
@@ -16,6 +21,15 @@ USING_DOCKER=
 ### We are supposed to be inside the root folder cloned by
 ### https://github.com/stigmee/bootstrap We save this path.
 HERE=`pwd`
+
+### Get the operating system
+OS=`uname -s`
+
+### Subfolders inside $WORKSPACE_STIGMEE
+STIGMEE_FOLDER="stigmee"
+GODOT_FOLDER="godot"
+CEF_FOLDER="CEF"
+BRAVE_FOLDER="brave-browser"
 
 ###############################################################################
 ### Color messages

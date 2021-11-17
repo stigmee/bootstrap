@@ -28,6 +28,19 @@
 
 source settings.sh
 
+### Get the operating system
+if [ "$OS" != "Linux" ]; then
+    err "Operating System $OS not yet managed"
+    exit 1
+fi
+
+### Check the command line
+if [ -z "$WORKSPACE_STIGMEE" ]; then
+    err "Please define \$1 as the path for your workspace holding "
+    err "Stigmee project (ie $0 ~/workspace_chreage). Abort!"
+    exit 1
+fi
+
 ### If docker is desired then check if docker is installed
 if [ -z "$USING_DOCKER" ]; then
     info "You have not requested using docker"
@@ -68,25 +81,31 @@ if [ ! -z "$USING_DOCKER" ]; then
            -t chreage .
 fi
 
-### $1 is the path of the desired Stigmee root folder to be created. It will
-### hold the whole code source of third-part projects.
-WORKSPACE_STIGMEE="$1"
-if [ -z "$WORKSPACE_STIGMEE" ]; then
-    err "Please define \$1 as the path for your workspace holding "
-    err "Stigmee project (ie $0 ~/workspace_chreage). Abort!"
-    exit 1
-fi
-
 ### Create and jump to Stigmee root folder (or die if it does not exist).
 msg "Going to workspace $WORKSPACE_STIGMEE ..."
 mkdir -p $WORKSPACE_STIGMEE
 
 ###############################################################################
+### Git clone or update Stigmee.
+###############################################################################
+cd $WORKSPACE_STIGMEE || (err "Cannot go to Stigmee workspace"; exit 1)
+if [ -e $STIGMEE_FOLDER ]; then
+    msg "Updating Stigmee ..."
+else
+    # Copy the Godot's CEF module
+    msg "Cloning Stigmee ..."
+    git clone https://github.com/Lecrapouille/bacasablemodulegodotcef.git --depth=1 $STIGMEE_FOLDER
+
+    # Copy Stigmee's Godot modules into Godot's code source"
+    msg "Copying Godot's modules ..."
+    cp -TR $WORKSPACE_STIGMEE/$STIGMEE_FOLDER/godot_modules $WORKSPACE_STIGMEE/$GODOT_FOLDER/modules
+fi
+
+###############################################################################
 ### Git clone or update Godot to the desired version.
 ###############################################################################
-cd "$WORKSPACE_STIGMEE" || (err "Cannot go to Stigmee workspace"; exit 1)
+cd $WORKSPACE_STIGMEE || (err "Cannot go to Stigmee workspace"; exit 1)
 if [ ! -z "$GODOT_VERSION" ]; then
-    GODOT_FOLDER="godot"
     if [ -e $GODOT_FOLDER ]; then
         msg "Updating Godot $GODOT_VERSION ..."
         (cd $GODOT_FOLDER && git pull --depth=1)
@@ -99,7 +118,7 @@ if [ ! -z "$GODOT_VERSION" ]; then
     msg "Compiling Godot $GODOT_VERSION ..."
     docker_run "$GODOT_FOLDER" "scons -j$(nproc) platform=linuxbsd"
 else
-    info "Ignoring Godot (explicitely set by the user)"
+    info "Ignoring Godot (explicitly set by the user)"
 fi
 
 ###############################################################################
@@ -107,28 +126,33 @@ fi
 ### version.
 ###############################################################################
 CEF_VERSION=$CHROMIUM_EMBEDDED_FRAMEWORK_VERSION
-cd "$WORKSPACE_STIGMEE" || (err "Cannot go to Stigmee workspace"; exit 1)
+cd $WORKSPACE_STIGMEE || (err "Cannot go to Stigmee workspace"; exit 1)
 if [ ! -z "$CEF_VERSION" ]; then
-    CEF_FOLDER="CEF"
-    mkdir -p $CEF_FOLDER
-    (cd $CEF_FOLDER
-     # This script works well but git clone with full history. For the moment use our hand-patched script
-     # curl https://bitbucket.org/chromiumembedded/cef/raw/master/tools/automate/automate-git.py --output bootstrap.py
-     cp $HERE/patches/CEF/bootstrap.py .
-
-     msg "Cloning chromium embedded framework $CEF_VERSION ..."
-     python bootstrap.py --download-dir="." --branch="$CEF_VERSION"
-    )
+    if [ ! -e $CEF_FOLDER ]; then
+        mkdir -p $CEF_FOLDER
+        (cd $CEF_FOLDER
+         # This script works well but git clone with full history. For the moment use our hand-patched script
+         # curl https://bitbucket.org/chromiumembedded/cef/raw/master/tools/automate/automate-git.py --output bootstrap.py
+         cp $HERE/patches/CEF/bootstrap.py .
+         # gnome-keyring-0 is installed not gnome-keyring-1
+         # See https://magpcss.org/ceforum/viewtopic.php?f=6&t=18141
+         export GN_DEFINES="use_sysroot=true cef_use_gtk=false use_allocator=none symbol_level=1 is_cfi=false use_thin_lto=false"
+         #"use_sysroot=true" # "use_gnome_keyring=false"
+         export PATH=$WORKSPACE_STIGMEE/$CEF_FOLDER/depot_tools/:$PATH
+         msg "Cloning chromium embedded framework $CEF_VERSION ..."
+         export
+         python bootstrap.py --download-dir="." --branch="$CEF_VERSION" --force-build --no-update #--no-chromium-update
+        )
+    fi
 else
-    info "Ignoring CEF (explicitely set by the user)"
+    info "Ignoring CEF (explicitly set by the user)"
 fi
 
 ###############################################################################
 ### Git clone or update brave-core's bootstraper to the desired version.
 ###############################################################################
-cd "$WORKSPACE_STIGMEE" || (err "Cannot go to Stigmee workspace"; exit 1)
+cd $WORKSPACE_STIGMEE || (err "Cannot go to Stigmee workspace"; exit 1)
 if [ ! -z "$BRAVE_VERSION" ]; then
-    BRAVE_FOLDER="brave-browser"
     if [ -e $BRAVE_FOLDER ]; then
         msg "Updating brave-browser $BRAVE_VERSION ..."
         (cd $BRAVE_FOLDER &&  git pull --depth=1)
@@ -162,7 +186,7 @@ if [ ! -z "$BRAVE_VERSION" ]; then
     fi
     docker_run "$BRAVE_FOLDER" "npm run build Component"
 else
-    info "Ignoring Brave (explicitely set by the user)"
+    info "Ignoring Brave (explicitly set by the user)"
 fi
 
 info "DONE"

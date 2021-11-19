@@ -158,7 +158,7 @@ cd $WORKSPACE_STIGMEE
 CEF_VERSION=$CHROMIUM_EMBEDDED_FRAMEWORK_VERSION
 if [ ! -z "$CEF_VERSION" ]; then
     if [ -d $CEF_FOLDER -a -e $CEF_FOLDER/.done ]; then
-        # FIXME: que faire si on modifie un fichier de CEF il faut relancer la compilation
+        # FIXME: comment faire si on modifie un fichier de CEF pour relancer la compilation
         info "Nothing to do for CEF $CEF_VERSION"
     else
         mkdir -p $CEF_FOLDER/automate $CEF_FOLDER/chromium_git
@@ -304,23 +304,44 @@ fi
 ### Git clone or update Stigmee.
 ###############################################################################
 cd $WORKSPACE_STIGMEE
+NEED_UPDATE_MODULES=
 if [ -d $STIGMEE_FOLDER ]; then
-    msg "Updating Stigmee ..."
+    cd $STIGMEE_FOLDER
+    if [ "`git fetch --dry-run`" != "" ]; then
+        msg "Updating Stigmee ..."
+        git pull --depth=1
+        NEED_UPDATE_MODULES="1"
+    else
+        info "Stigmee folder is uptodate"
+    fi
 else
-    # Copy the Godot's CEF module
     msg "Cloning Stigmee ..."
     git clone https://github.com/Lecrapouille/bacasablemodulegodotcef.git --depth=1 $STIGMEE_FOLDER
+    NEED_UPDATE_MODULES="1"
+fi
 
-    # Copy Stigmee's Godot modules into Godot's code source"
-    msg "Copying Godot's modules ..."
-    cp -TR $STIGMEE_FOLDER/godot_modules $GODOT_FOLDER/modules
+# Check empty module folders
+# FIXME: tester tous les modules
+if [ ! -d $WORKSPACE_STIGMEE/$GODOT_FOLDER/modules/cef ]; then
+    info "Module CEF missing: Need updating modules ..."
+    NEED_UPDATE_MODULES="1"
 fi
 
 # Compile Stigmee modules for Godot
-if [ -d $GODOT_FOLDER ]; then
-    cd $GODOT_FOLDER && scons -j$(nproc) platform=linuxbsd
-else
-    err "Godot folder does not exist: CEF modules not compiled !"
+cd $WORKSPACE_STIGMEE
+if [ ! -z "$NEED_UPDATE_MODULES" ]; then
+    # Copy Stigmee's Godot modules into Godot's code source"
+    msg "Copying Godot's modules ..."
+
+    # FIXME Copier seulement les dossiers
+    cp -fr $STIGMEE_FOLDER/godot_modules/* $GODOT_FOLDER/modules
+    
+    cd $GODOT_FOLDER
+    msg "Compiling Godot $GODOT_VERSION modules ..."
+    cmd "$GODOT_FOLDER" "scons -j$(nproc) platform=linuxbsd"
 fi
 
 info "Finally done :)"
+
+# ./chromium_git/chromium/src/cef/include/internal/cef_types.h
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/qq/chreage_workspace/CEF/chromium_git/chromium/src/out/Release_GN_x64

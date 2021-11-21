@@ -52,14 +52,6 @@ RUN npm --version
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Create a non-root user
-ARG USER=swuser
-ARG USER_ID=1000
-ARG GROUP_ID=1000
-RUN groupadd -r ${USER} -g ${GROUP_ID}
-RUN useradd -l -u ${USER_ID} -r -g ${USER} -s /sbin/nologin -c "Docker image user" ${USER}
-USER ${UID}:${GID}
-
 # Stigmee workspace folder
 ENV WORKSPACE=/workspace
 WORKDIR $WORKSPACE

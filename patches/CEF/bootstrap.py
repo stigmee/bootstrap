@@ -1364,7 +1364,7 @@ if chromium_checkout_changed:
       run("%s clean -dffx" % (git_exe), chromium_src_dir, depot_tools_dir)
     else:
       # Revert all changes in the Chromium checkout.
-      run("gclient revert --no-history --nohooks", chromium_dir, depot_tools_dir)
+      run("gclient revert --nohooks", chromium_dir, depot_tools_dir)
 
   # Checkout the requested branch.
   run("%s checkout %s%s" % \

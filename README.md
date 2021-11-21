@@ -86,5 +86,7 @@ TODO
 - With Docker, if you want to modify the Stigmee's code source and recompile it:
 ```bash
 cd $WORKSPACE_STIGMEE
-docker run --rm -ti -v $(pwd):/workspace -w /workspace stigmee:latest /bin/bash
+docker run --rm -ti -u $(id -u ${USER}):$(id -g ${USER}) -v $(pwd):/workspace -w /workspace stigmee:latest /bin/bash
 ```
+
+For explanations of the command line: see [README](https://github.com/stigmee/doc/blob/master/doc/tuto_docker_fr.md) for more information.

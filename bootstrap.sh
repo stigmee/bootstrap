@@ -35,7 +35,7 @@
 # install a third-part unset its version.
 GODOT_VERSION=3.4-stable
 BRAVE_VERSION= #v1.32.96
-CHROMIUM_EMBEDDED_FRAMEWORK_VERSION=4664 # FIXME not used yet, track the HEAD
+CHROMIUM_EMBEDDED_FRAMEWORK_VERSION=4664
 
 # Use Docker for building Stigmee ? If no unset the variable !
 USING_DOCKER=1
@@ -113,11 +113,7 @@ fi
 ### (Brave?), Godot and finally Stigmee.
 ###############################################################################
 if [ ! -z "$USING_DOCKER" ]; then
-    (cd $BOOTSRAP_FOLDER && \
-         docker build \
-                --build-arg USER=$USER --build-arg UID=$UID --build-arg GID=$GID \
-                -t stigmee .
-    )
+    (cd $BOOTSRAP_FOLDER && docker build -t stigmee .)
 fi
 
 ###############################################################################
@@ -140,6 +136,7 @@ function cmd()
         msg "Dockering command: cd $FOLDER && $*"
         (cd $WORKSPACE_STIGMEE && \
              docker run --rm -ti -v $(pwd):/workspace -w /workspace/$FOLDER \
+                    -u $(id -u ${USER}):$(id -g ${USER}) \
                     stigmee:latest /bin/bash -c "$*"
         )
     fi
@@ -154,19 +151,22 @@ cd $WORKSPACE_STIGMEE || (err "Cannot go to Stigmee workspace"; exit 1)
 
 ###############################################################################
 ### Git clone or update Chromium Embedded Framework's bootstraper to the desired
-### version.
+### version. Follow the procedure described here:
+### https://github.com/sealemar/cef-dockerized
 ###############################################################################
 cd $WORKSPACE_STIGMEE
 CEF_VERSION=$CHROMIUM_EMBEDDED_FRAMEWORK_VERSION
 if [ ! -z "$CEF_VERSION" ]; then
     if [ -d $CEF_FOLDER -a -e $CEF_FOLDER/.done ]; then
-        info "Nothing to do for CEF"
+        # FIXME: que faire si on modifie un fichier de CEF il faut relancer la compilation
+        info "Nothing to do for CEF $CEF_VERSION"
     else
         mkdir -p $CEF_FOLDER/automate $CEF_FOLDER/chromium_git
         cd $CEF_FOLDER || (err "Cannot go to CEF folder"; exit 1)
 
         # Install system packages
         if [ -z "$USING_DOCKER" ]; then
+            info "I'm not in Docker so install system packages for CEF $CEF_VERSION ..."
             SCRIPT=/tmp/cef-install-build-deps.sh
             curl 'https://chromium.googlesource.com/chromium/src/+/master/build/install-build-deps.sh?format=TEXT' | base64 -d > $SCRIPT
             chmod +x /tmp/cef-install-build-deps.sh
@@ -179,8 +179,8 @@ if [ ! -z "$CEF_VERSION" ]; then
         fi
 
         # Configure CEF
+        info "Configuring compilation for CEF $CEF_VERSION ..."
         export PATH=$CEF_FOLDER/depot_tools:$PATH
-
         if [ "`dpkg --print-architecture`" == "arm64" ]; then
             export GYP_DEFINES="target_arch=arm64"
             export GN_DEFINES="is_official_build=true use_sysroot=true use_allocator=none symbol_level=1 enable_nacl=false use_cups=false"
@@ -192,15 +192,20 @@ if [ ! -z "$CEF_VERSION" ]; then
             export CEF_USE_GN=1
             export GYP_DEFINES="disable_nacl=1 use_sysroot=1 buildtype=Official use_allocator=none"
             export GN_DEFINES="is_official_build=true use_sysroot=true use_allocator=none symbol_level=1 enable_nacl=false use_cups=false"
+            export EXTRA_AUTOMATE_ARGS="--x64-build"
             export NINJA_DEBUG_ARGS="-C out/Debug_GN_x64"
             export NINJA_RELEASE_ARGS="-C out/Release_GN_x64"
-            export EXTRA_AUTOMATE_ARGS="--x64-build"
             export CHROME_DEVEL_SANDBOX=/usr/local/sbin/chrome-devel-sandbox
         fi
 
         # Install packages needed for compiling CEF
         msg "Installing packages for chromium embedded framework $CEF_VERSION ..."
-        cd $CEF_FOLDER && git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+        cd $CEF_FOLDER
+        if [ -d depot_tools ]; then
+            err "The folder $CEF_FOLDER/depot_tools already exist ignoring command 'git clone ...'"
+        else
+            git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+        fi
         cd $CEF_FOLDER/automate
         # This script works well but git clone with full history. For the moment use our hand-patched script
         # curl https://bitbucket.org/chromiumembedded/cef/raw/master/tools/automate/automate-git.py --output automate-git.py
@@ -212,17 +217,24 @@ if [ ! -z "$CEF_VERSION" ]; then
         python $CEF_FOLDER/automate/automate-git.py \
                --download-dir=$CEF_FOLDER/chromium_git \
                --depot-tools-dir=$CEF_FOLDER/depot_tools \
-               --no-distrib --no-build $EXTRA_AUTOMATE_ARGS # \
-               # --branch=$CHROMIUM_EMBEDDED_FRAMEWORK_VERSION
-        $CEF_FOLDER/docker/install_sysroot_wrapper.sh
+               --no-distrib --no-build $EXTRA_AUTOMATE_ARGS \
+               --branch=$CHROMIUM_EMBEDDED_FRAMEWORK_VERSION
+
+        if [ "`dpkg --print-architecture`" == "arm64" ]; then
+            $CEF_FOLDER/chromium_git/chromium/src/build/linux/sysroot_scripts/install-sysroot.py --arch=arm64
+        fi
+
+        msg "Building chromium $CEF_VERSION ..."
         cd $CEF_FOLDER/chromium_git/chromium/src/cef && ./cef_create_projects.sh
         cd $CEF_FOLDER/chromium_git/chromium/src
-        ninja ${NINJA_DEBUG_ARGS} cefsimple chrome_sandbox
-        ninja ${NINJA_RELEASE_ARGS} cefsimple chrome_sandbox
+
+        msg "Building cefsimple chrome_sandbox ..."
+        #ninja $NINJA_DEBUG_ARGS cefsimple chrome_sandbox
+        ninja $NINJA_RELEASE_ARGS cefsimple chrome_sandbox
 
         # Add a summy file indicating the compilation has ended with success
         # FIXME: detect libcef instead
-        touch $CEF_FOLDER/.done
+        echo "$CEF_VERSION" > $CEF_FOLDER/.done
     fi
 else
     info "Ignoring CEF (explicitly set by the user)"
@@ -311,4 +323,4 @@ else
     err "Godot folder does not exist: CEF modules not compiled !"
 fi
 
-info "DONE"
+info "Finally done :)"

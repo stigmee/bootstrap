@@ -1287,7 +1287,7 @@ if not os.path.exists(gclient_file) or options.forceconfig:
 # Initial Chromium checkout.
 if not options.nochromiumupdate and not os.path.exists(chromium_src_dir):
   chromium_checkout_new = True
-  run("gclient sync --no-history --nohooks --with_branch_heads --jobs 16", \
+  run("gclient sync --no-history --nohooks --with_branch_heads -vv --jobs 32", \
       chromium_dir, depot_tools_dir)
 else:
   chromium_checkout_new = False
@@ -1375,14 +1375,14 @@ if chromium_checkout_changed:
   apply_deps_patch()
 
   # Update third-party dependencies including branch/tag information.
-  run("gclient sync --no-history %s--nohooks --with_branch_heads --jobs 16" % \
+  run("gclient sync --no-history %s--nohooks --with_branch_heads -vv --jobs 32" % \
       ('--reset ' if discard_local_changes else ''), chromium_dir, depot_tools_dir)
 
   # Patch the Chromium runhooks scripts if necessary.
   apply_runhooks_patch()
 
   # Runs hooks for files that have been modified in the local working copy.
-  run("gclient runhooks --jobs 16", chromium_dir, depot_tools_dir)
+  run("gclient runhooks --jobs 32", chromium_dir, depot_tools_dir)
 
   # Delete the src/out directory created by `gclient sync`.
   delete_directory(out_src_dir)

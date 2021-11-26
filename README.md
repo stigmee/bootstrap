@@ -12,10 +12,10 @@ third-parts, doing the setup, compiling third-parts and Stigmee project) on
 Linux (for the moment). Depending on the environment of your operating system,
 you may have more or less difficulties to compile third parts if you are trying
 to compile them [directly](https://github.com/stigmee/doc#installation)) that is
-why we are also offering a [Dockerfile](Dockerfile) (called optionaly by
+why we are also offering a [Dockerfile](Dockerfile) (optionaly called by
 bootstrap.sh) to offer you a correct compilation environment (**Note:** the
 usage of docker is still experimental since exporting the display an Vulkan for
-Docker can be difficult).
+Docker can be difficult. More information [here](https://github.com/stigmee/doc/blob/master/doc/tuto_docker_fr.md)).
 
 For these reasons, you will just have to use the **entry-point** script
 [bootstrap.sh](bootstrap.sh).
@@ -30,7 +30,7 @@ for example):
   docker=podman` for following this document).
 - Git to download the code source and apply patches.
 
-## Downloading stigmee docker image
+### Downloading stigmee docker image
 
 - Create a docker Hub account and go to the following repository : https://hub.docker.com/r/lecrapouille/stigmee
 - Copy the command line and paste it into a powershell terminal
@@ -46,7 +46,7 @@ docker.io/lecrapouille/stigmee:latest
 
 **Note:** in some case the remote image was modified and `docker pull` will synchronize your local image. The time for downloading the whole image will depend on your connection speed (around 1.5 Gb). You can then start the docker container from that image. For more information about Docker see [this document](https://github.com/stigmee/doc/blob/master/doc/tuto_docker_fr.md).
 
-## Set you Bash/PowerShell environment for Stigmee
+### Set you Bash/PowerShell environment for Stigmee
 
 Save this in your `~/.bashrc` file (or any equivalent file):
 
@@ -67,7 +67,7 @@ function docker_stigmee()
 }
 ```
 
-## Bootstraping Stigmee
+## Bootstraping Stigmee Project
 
 - Create the workspace folder:
 ```bash

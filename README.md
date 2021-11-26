@@ -92,7 +92,7 @@ apt-get install ./meta/stigmee-developpers_1.0_all.deb
 # sudo dpkg -i ./meta/stigmee-developpers_1.0_all.deb
 ```
 
-- Optionally, you can edit some settings inside the script [settings.sh](settings.sh) :
+- Optionally, you can edit some settings inside the script [bootstrap.sh](bootstrap.sh) :
   - The versions for Godot (currently `GODOT_VERSION=3.4-stable`), CEF (currently
     `CHROMIUM_EMBEDDED_FRAMEWORK_VERSION=4664`), Brave (is not currently compile but if
     needed, in the future, set `BRAVE_VERSION=v1.32.96`). **Note:** Unseting the version

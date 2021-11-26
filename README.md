@@ -27,7 +27,7 @@ Note : Docker is not compatible with other virtualisazation subsystem (notably V
 bcdedit /set hypervisorlaunchtype off
 ```
 
-## Configure Docker storage 
+## Configure Docker storage
 
 If you've got several hard drives installed in your system, it might be advisable to change the location of Docker's virtual storage to avoid filling up your system partition.
 For example, the cammands below will transfer the virtual storage to D:\Docker
@@ -72,15 +72,18 @@ Stigmee's development is depending on the following projects as third parts:
   https://bitbucket.org/chromiumembedded/cef/src/master/
 - (Brave-core: https://github.com/brave/brave-browser replaced by CEF).
 
-This document will explain how to setup, download third-parts and compile
-Stigmee project on Linux (for the moment) using the **entry-point** script
-[bootstrap.sh](bootstrap.sh). Depending on the environment of your operating
-system, you may have more or less difficulties to compile third parts if you are
-trying to compile them [directly](https://github.com/stigmee/doc#installation))
-that is why we are also offering a [Dockerfile](Dockerfile) (called optionaly by
+This document will explain how bootstraping Stigmee (meaning downloading
+third-parts, doing the setup, compiling third-parts and Stigmee project) on
+Linux (for the moment). Depending on the environment of your operating system,
+you may have more or less difficulties to compile third parts if you are trying
+to compile them [directly](https://github.com/stigmee/doc#installation)) that is
+why we are also offering a [Dockerfile](Dockerfile) (called optionaly by
 bootstrap.sh) to offer you a correct compilation environment (**Note:** the
 usage of docker is still experimental since exporting the display an Vulkan for
 Docker can be difficult).
+
+For these reasons, you will just have to use the **entry-point** script
+[bootstrap.sh](bootstrap.sh).
 
 **Be sure you have around 60 gigabytes of free space on your hard disk.**
 
@@ -90,13 +93,28 @@ for example):
   docker=podman` for following this document).
 - Git to download the code source and apply patches.
 
-## Bootstraping Stigmee
+## Bash environment for Stigmee
 
-- Create an environement variable `$WORKSPACE_STIGMEE` refering to the root folder for compiling Stigmee.
-Save this variable in your `~/.bashrc` file (or any equivalent file):
+Save this in your `~/.bashrc` file (or any equivalent file):
+
+- The environement variable `$WORKSPACE_STIGMEE` refering to the workspace folder for compiling Stigmee.
 ```bash
 export WORKSPACE_STIGMEE=/your/desired/path/for/stigmee_workspace
 ```
+
+- For developpers, save this command which will allow you to jump into your Stigmee workspace and call Docker against Stigmee's folder for compiling them.
+```bash
+function docker_stigmee()
+{
+    echo "Dockered Stigmee's workspace at $WORKSPACE_CHREAGE"
+    (cd $WORKSPACE_CHREAGE || (echo "No Stigmee workspace found"; exit 1)
+     docker run --rm -ti -v $(pwd):/workspace -w /workspace/$FOLDER \
+         -u $(id -u ${USER}):$(id -g ${USER}) stigmee:latest /bin/bash
+    )
+}
+```
+
+## Bootstraping Stigmee
 
 - Create the workspace folder:
 ```bash

@@ -1,3 +1,68 @@
+# Docker installation
+
+## Enabling Hyper-V / Compatibility with other paravirtualization layers
+
+For those who are new to docker, after installing the software from https://docs.docker.com/desktop/windows/install/
+do not forget :
+
+- Activate Hyper-V support in the Bios (should already by activated on recent platforms)
+- enable the Hyper-V feature :
+
+From a PowerSHell command line
+```bash
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
+```
+(or alternatively, go to "Enable or disable windows features" and check the Hyper-V group)
+(restart your system)
+
+Depending on the configuration, it's still possible that Hyper-V is not enable at that point, in which case Docker will raise an error upon startup.
+It that is the case, the following command should solve the issue :
+```bash
+bcdedit /set hypervisorlaunchtype auto
+```
+(restart your system)
+
+Note : Docker is not compatible with other virtualisazation subsystem (notably VirtualBox), so note the use of both systems might not be possible depending on which software you are using and which paravirtualized layer it is build on. to be able to use Virtualbox at that point, you will need to disable Hyper-V like so :
+```bash
+bcdedit /set hypervisorlaunchtype off
+```
+
+## Configure Docker storage 
+
+If you've got several hard drives installed in your system, it might be advisable to change the location of Docker's virtual storage to avoid filling up your system partition.
+For example, the cammands below will transfer the virtual storage to D:\Docker
+
+```bash
+C:\Users\Alain>wsl --shutdown
+
+C:\Users\Alain>wsl --export docker-desktop-data docker-desktop-data.tar
+
+C:\Users\Alain>wsl --unregister docker-desktop-data
+Désinscription...
+
+C:\Users\Alain>wsl --import docker-desktop-data D:\Docker\ docker-desktop-data.tar --version 2
+```
+
+## Downloading stigmee docker image
+
+- Create a docker Hub account and go to the following repository : https://hub.docker.com/r/lecrapouille/stigmee
+- Copy the command line and paste it into a powershell terminal
+
+```bash
+PS D:\Docker> docker pull lecrapouille/stigmee
+Using default tag: latest
+latest: Pulling from lecrapouille/stigmee
+Digest: sha256:580216370dc62ca1119e5ead8670ca8c1c9183561c38114254c5acc74945680c
+Status: Image is up to date for lecrapouille/stigmee:latest
+docker.io/lecrapouille/stigmee:latest
+```
+
+Note : in my case this was already in sync but downloading the image will depend on your connection speed)
+
+You can then start the docker container from that image.
+
+
+
 # Stigmee setup and code source compilation
 
 Stigmee's development is depending on the following projects as third parts:
